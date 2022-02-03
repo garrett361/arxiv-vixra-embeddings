@@ -1,0 +1,400 @@
+<!doctype html>
+
+<!-- Any figures to-be called with <img ...> should be placed in /static and called 
+as with /static as their root. E.g. <img src="/diagrams/fig1.png">
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="template.v2.js"></script>
+  <title>arXiv/viXra - Workflow - Garrett Goon</title>
+</head>
+
+<body>
+
+  <!-- I added a date field to more easily add the date to the front matter. Removed the DOI file -->
+
+  <d-front-matter>
+    <script type="text/json">
+      {
+        "title": "arXiv/viXra - Workflow",
+        "authors": [
+          {
+            "author": "Garrett Goon",
+            "authorURL": "https://garrettgoon.com",
+            "affiliation": "CMU",
+            "affiliationURL": "https://www.cmu.edu/physics/"
+          }
+        ],
+        "katex": {
+          "delimiters": [
+            {
+              "left": "$",
+              "right": "$",
+              "display": false
+            },
+            {
+              "left": "$$",
+              "right": "$$",
+              "display": true
+            }
+          ]
+        },
+        "date" : "15 December, 2021"
+      }
+  </script>
+  </d-front-matter>
+
+  <d-title>
+    <h1>arXiv/viXra - Workflow</h1>
+    <p>Colab, PyTorch Lightning, and Weights and Biases</p>
+  </d-title>
+
+
+  <d-article>
+    <p>
+      Include <a target='_blank' rel='noopener noreferrer' href='/home/garrett/Git/arxiv-vixra-workflow'>This cheat
+        sheet</a> and NLP stanford linkg
+    </p>
+
+    <p>
+      Without good tools and organization, it is easy for a project to get out of hand. Below I describe
+      the tools and workflow used for the arXiv/viXra project.
+    </p>
+
+    <h3>Tools and Organization</h3>
+
+    <p>
+      I used <a target='_blank' rel='noopener noreferrer' href='https://colab.research.google.com/signup'>Google Colab
+        Pro+</a> notebooks in order to access GPUs, with <a target='_blank' rel='noopener noreferrer'
+        href='https://www.pytorchlightning.ai/'>
+        <d-code language='python'>pytorch lightning</d-code>
+      </a>
+      on top of vanilla <a target='_blank' rel='noopener noreferrer' href='https://pytorch.org/'>
+        <d-code language='python'>pytorch</d-code>
+      </a>
+      for coding efficiency, and <a target='_blank' rel='noopener noreferrer' href='https://wandb.ai/site'>
+        <d-code language='python'>wandb</d-code>
+      </a>
+      to track and visualize the results of model training.
+    </p>
+
+    <h4>
+      Google Colab
+    </h4>
+
+    <p>
+      Google Colab noteboks are essentially cloud-based, slightly modified Jupyter notebooks which can easily be synced
+      up
+      with Google Drive<d-footnote id='slow-drive'>
+        Beware: reading data directly from Drive is very slow! Files on Drive can be copied to the Colab
+        notebook <d-code language='python'>cwd</d-code> via code such as
+        <d-code block='' language='python'>
+          from google.colab import drive
+          drive.mount("/content/drive")
+          !cp 'path_to_data_on_Drive' . # Don't forget the period.
+        </d-code>
+        Pulling from the copied file(s) will be much faster than pulling from Drive.
+      </d-footnote>. The number of simultaneous notebooks one can run, their maximum runtime, and the GPU specs
+      and amount of RAM Google provides are all determined by current demand, historical use, and subscription level
+      <d-footnote id='cost'>
+        I sprung for the
+        most expensive option ($50/month), which nonetheless seemed economical when compared to AWS instances and other,
+        similar
+        options.
+      </d-footnote>. They are not without headaches, but overall I have been very pleased with the Colab experience.
+    </p>
+
+    <h4>
+      PyTorch Lightning
+    </h4>
+
+    <p>
+      <d-code language='python'>pytorch</d-code> appears to have solidified a solid lead amongst the various ML research
+      frameworks available (sorry <d-code language='python'>tensorflow</d-code>) due, in part, to its flexibility and
+      highly pythonic API.
+    </p>
+
+    <p>
+      <d-code language='python'>pytorch lightning</d-code> (<d-code language='python'>pl</d-code>) improves the <d-code
+        language='python'>pytorch</d-code>
+      experience further by removing much of the boilerplate code needed in developing, training, and testing models. A
+      few features:
+    </p>
+
+    <ul>
+      <li>
+        <d-code language='python'>pl</d-code> handles moving tensors to the proper device. No explicit <d-code
+          language='python'>some_tensor.to('cuda')</d-code> calls needed for utilizing GPUs.
+      </li>
+      <li>
+        <d-code language='python'>pl</d-code>'s <a target='_blank' rel='noopener noreferrer'
+          href='https://pytorch-lightning.readthedocs.io/en/latest/common/lightning_module.html'>
+          <d-code language='python'>LightningModule</d-code>
+          <<<<<<< HEAD </a> (a subclass of
+            <d-code language='python'>nn.Module</d-code>) encapsulates the model architecture, optimizer, and (train,
+            val,
+            test)-loop code in a neat package, while still allowing for massive customization and minimizing bookkeeping
+            =======
+        </a> (a subclass of <d-code language='python'>pytorch</d-code>'s
+        <d-code language='python'>nn.Module</d-code>) encapsulates the model architecture, optimizer, and
+        <d-code language='python'>{train, val, test}</d-code>-loop code in a neat package, while still allowing for
+        massive customization and minimizing
+        >>>>>>> f9399d321e76cc24fa271e6b5a3df4d0c6aa07d2
+        code<d-footnote id='bookkeeping'>
+          For example, there is no need to zero-out gradients, call <d-code language='html'>model.eval()</d-code>/
+          <d-code language='python'>model.train()</d-code>, or write <d-code language='python'>optimizer.step()</d-code>
+          manually.
+        </d-footnote>.
+      </li>
+      <li>
+        <d-code language='python'>pl</d-code>'s <a target='_blank' rel='noopener noreferrer' <<<<<<< HEAD
+          href='https://pytorch-lightning.readthedocs.io/en/latest/api/pytorch_lightning.trainer.trainer.html?highlight=Trainer'>
+          <d-code language='python'>Trainer</d-code>
+        </a> class similarly encapsulates all stages of the train/val/test loops in a single place.
+        =======
+        href='https://pytorch-lightning.readthedocs.io/en/latest/extensions/datamodules.html'>
+        <d-code language='python'>LightningDataModule</d-code>
+        </a> similarly encapsulates all elements related to the <d-code language='python'>{train, val, test}</d-code>
+        data and
+        <d-code language='python'>pl</d-code>'s
+        <a target='_blank' rel='noopener noreferrer'
+          href='https://pytorch-lightning.readthedocs.io/en/latest/api/pytorch_lightning.trainer.trainer.html?highlight=Trainer'>
+          <d-code language='python'>Trainer</d-code>
+        </a> ties the preceding elements together at runtime.
+        >>>>>>> f9399d321e76cc24fa271e6b5a3df4d0c6aa07d2
+      </li>
+    </ul>
+
+    <h4>
+      Weights and Biases
+    </h4>
+
+    <p>
+      Weights and Biases (<d-code language='python'>wandb</d-code>) is a lightweight, cloud-based platform for easily
+      tracking, organizing, and visualizing the
+      many iterations of models and training runs in a project. Further, <d-code language='python'>wandb</d-code> can be
+      used to automate hyperparameter sweeps with a menu flexible options. It is easy to use and has
+      <d-code language='python'>pytorch lightning</d-code>
+      integration via <d-code language='python'>pl</d-code>'s <a target='_blank' rel='noopener noreferrer'
+        href='https://pytorch-lightning.readthedocs.io/en/latest/extensions/generated/pytorch_lightning.loggers.WandbLogger.html?highlight=WandbLogger'>
+        <d-code language='python'>WandbLogger</d-code>
+      </a> module.
+    </p>
+
+    <p>
+      In addition to tracking any desired statistics for training runs, one can also upload arbitrary files for each run
+      (such as the <d-code language='python'>state_dict</d-code> for a saved <d-code language='python'>pytorch</d-code>
+      model) and easily generate useful visualizations comparing runs or illustrating the results of a single run.
+    </p>
+
+    <p>
+      Below are two such examples of single-run visualizations.
+    </p>
+
+    <p>
+      <<<<<<< HEAD First: a histogram demonstrating how the probabilities predicted by one particular model change with
+        training time (<d-math>p=1</d-math> corresponding to a prediction that the title is definitely from viXra). The
+        predictions
+        spread out from <d-math>p=.5</d-math> in the expected manner (hover to see individual steps):
+        =======
+        First: histograms demonstrating how the probabilities assigned to a sample of papers evolves with training time,
+        as predicted by a particular model. Here <d-math>p</d-math> (y-axis) is the probability that a given paper is
+        from
+        viXra. The predictions spread out from <d-math>p=.5</d-math> in the expected manner (hover to see details of
+        individual time-steps).
+        <a target='_blank' rel='noopener noreferrer'
+          href='https://wandb.ai/garrett361/balanced_title_recurrent_one_hot/reports/arXiv-viXra-Probability-Histogram--VmlldzoxMzQ3MTkx'>(Direct
+          link here.)</a>
+        >>>>>>> f9399d321e76cc24fa271e6b5a3df4d0c6aa07d2
+    </p>
+
+    <iframe
+      src="https://wandb.ai/garrett361/balanced_title_recurrent_one_hot/reports/Shared-panel-21-12-15-22-12-51--VmlldzoxMzQ3MTkx?highlightShare"
+      style="border:none;height:1024px;width:100%"></iframe>
+
+    <p>
+      Second: predictions for specific titles generated by same model as above. By
+      allowing for easy inspection of specific examples, <d-code language='python'>wandb</d-code> makes it easier to
+      spot patterns (and possible signs of cheating or code issues) in the results. <a target='_blank'
+        rel='noopener noreferrer'
+        href='https://wandb.ai/garrett361/balanced_title_recurrent_one_hot/reports/Sample-Title-Predictions--VmlldzoxMzQ3MjMy'>(Direct
+        link here.)</a>
+    </p>
+
+    <iframe
+      src="https://wandb.ai/garrett361/balanced_title_recurrent_one_hot/reports/Sample-Title-Predictions--VmlldzoxMzQ3MjMy"
+      style="border:none;height:1024px;width:100%"></iframe>
+
+
+    <h3>
+      Training Workflow
+    </h3>
+
+    <p>
+      The general training workflow I used for training all of the deep-learning models detailed in these posts is
+      relatively straightforward:
+    </p>
+
+    <ol>
+      <li>
+        In order to organize the deep-learning model code and minimize the amount of explicit code in my Colab
+        <<<<<<< HEAD notebooks, I put all <d-code language='python'>pl</d-code> models, data modules, etc into a package
+          I called
+          <d-code language='python'>arxiv_vixra_models</d-code> <a target='_blank' rel='noopener noreferrer'
+            href='https://github.com/garrett361/arxiv-vixra-ml/tree/main/arxiv_vixra_models'>(which can be found
+            here)</a>,
+          and which is easily imported into Colab notebooks from Drive.
+          =======
+          notebooks, I put all <d-code language='python'>pl</d-code> models, data modules, helper functions, etc., into
+          a
+          package,
+          <d-code language='python'>arxiv_vixra_models</d-code> <a target='_blank' rel='noopener noreferrer'
+            href='https://github.com/garrett361/arxiv-vixra-ml/tree/main/arxiv_vixra_models'>(which can be found
+            here)</a>, which is easily imported into Colab notebooks from Drive.
+          >>>>>>> f9399d321e76cc24fa271e6b5a3df4d0c6aa07d2
+      </li>
+      <li>
+        After importing a model from <d-code language='python'>arxiv_vixra_models</d-code> and setting the
+        hyperparameters which determine
+        <<<<<<< HEAD the model's capacity, I would then perform a trial-run on a subset of the training data to estimate
+          the=======the model's capacity, I then performed a trial-run on a subset of the training data to estimate the>
+          >>>>>> f9399d321e76cc24fa271e6b5a3df4d0c6aa07d2
+          optimal initial learning rate (lr), à la the well-known <a target='_blank' rel='noopener noreferrer'
+            href='https://arxiv.org/abs/1506.01186'>paper by Leslie Smith.</a> In this method, a small initial lr is
+          increased by a constant factor for each new batch of data until some maximum lr is surpassed or
+          the loss diverges (this process is implemented by <d-code language='python'>pl</d-code>'s <a target='_blank'
+            rel='noopener noreferrer'
+            href='https://pytorch-lightning.readthedocs.io/en/latest/api/pytorch_lightning.tuner.tuning.Tuner.html#pytorch_lightning.tuner.tuning.Tuner.lr_find'>lr_find</a>
+          method). The location of steepest descent<d-footnote id='descent'>
+            This steepest-descent prescription is not precisely what was advocated for in <a target='_blank'
+              rel='noopener noreferrer' href='https://arxiv.org/abs/1506.01186'>1506.01186</a> (nor was it the primary
+            focus of the paper) and the rule seems often to be stated without explanation. The essential logic is
+            that the
+            logarithmic learning-rate axis is a proxy for time-step, since the learning rate is being increased by some
+            constant factor for each new batch. Explicitly, the lr at the <d-math>n</d-math>-th batch, <d-math>\ell_{n}
+              <<<<<<< HEAD </d-math> is related to initial rate <d-math>\ell_{0}</d-math> by <d-math>\ell_{n}=\alpha^n
+                  \ell_{0}
+                  =======
+                </d-math>, is related to initial rate, <d-math>\ell_{0}</d-math>, by <d-math>\ell_{n}=\alpha^n \ell_{0}
+                  >>>>>>> f9399d321e76cc24fa271e6b5a3df4d0c6aa07d2
+                </d-math> for some <d-math>\alpha > 1</d-math>, meaning that <d-math>\ln \ell_{n}</d-math> grows
+                linearly
+                with <d-math>n</d-math> (the time-step), as claimed. The point of steepest-descent therefore corresponds
+                to
+                the configuration for which the loss was most-rapidly decreasing in time, which is precisely the desired
+                property for an initial lr. (The model weights are being updated in the usual way at each step, so
+                comparing
+                different
+                points on the
+                log(lr) axis is not exactly an apples-to-apples comparison since they correspond to different points in
+                the
+                <<<<<<< HEAD loss-landscape, but I am not aware of any analysis regarding this
+                  concern.)=======loss-landscape, but I am not aware of any analysis regarding this point.)>>>>>>>
+                  f9399d321e76cc24fa271e6b5a3df4d0c6aa07d2
+          </d-footnote> on the resulting loss-vs-log(lr) plot provides the suggested initial lr; see the figure below.
+      </li>
+      <li>
+        Set up a <d-code language='python'>wandb</d-code> hyperparameter sweep<d-footnote id='break'>
+          Updates to <d-code language='python'>pl</d-code> have
+          <a target='_blank' rel='noopener noreferrer'
+            href='https://github.com/PyTorchLightning/pytorch-lightning/issues/10336'>broken
+            <d-code language='python'>wandb</d-code> sweeps recently
+          </a>, but the <d-code language='python'>pl</d-code> team is very responsive
+          about addressing the issue, thankfully.
+        </d-footnote> exploring a neighborhood of the suggested
+        <<<<<<< HEAD initial lr and possibly other parameters which do not significantly change the size of the model
+          (e.g. don't=======initial lr and possibly other parameters <d-footnote id='random-search'>
+          The sweep parameters for each run are chosen randomly. <a target='_blank' rel='noopener noreferrer'
+            href='https://jmlr.csail.mit.edu/papers/volume13/bergstra12a/bergstra12a.pdf'>This
+            is a superior strategy to a grid-search</a>, essentially because a random-search avoids making unnecessary
+          assumptions about the structure of hyperparameter space and freeing oneself from a rigidly structured scan
+          expands the effective search volume.
+          </d-footnote> which do not significantly change the size of the model (e.g. don't
+          >>>>>>> f9399d321e76cc24fa271e6b5a3df4d0c6aa07d2
+          scan over possible choices of hidden dimensions). The latter condition ensures that we can use a constant,
+          large-as-possible batch size without running into <d-code language='python'>CUDA error: out of memory</d-code>
+          issues due to changes in model size.
+      </li>
+      <li>
+        Increase the capacity of the model until it can learn the training set, while trying not to add any
+        complications, per <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org">Karpathy's advice
+        </a>.
+      </li>
+      <li>
+        Finally, add regularization to improve validation-set performance, toy around with various learning-rate
+        schedulers, and save the best models to <d-code language='python'>wandb</d-code>.
+      </li>
+    </ol>
+
+    <d-figure style="grid-column-end: page-end">
+      <img src='images/lr_find.svg' alt='lr finder'>
+      <figcaption>
+        An example of Smith's method for estimating the ideal initial learning rate, as implemented by <d-code
+          language='python'>pytorch lightning</d-code>. The red dot is the suggested lr.
+      </figcaption>
+      </figure>
+
+
+  </d-article>
+
+
+
+  <d-appendix>
+
+
+    <h3>Acknowledgments</h3>
+
+    <p>
+      Thank you to <a href="https://distill.pub" target="_blank" rel="noopener noreferrer">the <em>Distill</em> team</a>
+      for making their
+      <a href="https://github.com/distillpub" target="_blank" rel="noopener noreferrer">article template publicly
+        available</a> and to the Colab, <d-code language='python'>pytorch lightning</d-code>, and <d-code
+        language='python'>wandb</d-code> teams for their wonderful tools.
+    </p>
+
+    <d-footnote-list></d-footnote-list>
+
+    <h3>All Project Posts</h3>
+
+    <p>Links to all posts in this series.
+      <em>Note: all code for this project can be found <a target='_blank' rel='noopener noreferrer'
+          href='https://github.com/garrett361/arxiv-vixra-ml'>on my GitHub page</a>.
+      </em>
+    </p>
+
+    <ul>
+      <li>
+        <a target="_blank" rel="noopener noreferrer" href="https://garrettgoon.com/arxiv-vixra-data/">The Data</a>
+      </li>
+      <li>
+        <a target='_blank' rel='noopener noreferrer' href='https://garrettgoon.com/arxiv-vixra-workflow/'>Workflow</a>
+      </li>
+      <li>
+        <a target="_blank" rel="noopener noreferrer"
+          href="https://garrettgoon.com/arxiv-vixra-baseline-models/">Baseline Models</a>
+      </li>
+      <li>
+        <a target="_blank" rel="noopener noreferrer" href="https://garrettgoon.com/arxiv-vixra-simple-recurrent/">Simple
+          Recurrent Models</a>
+      </li>
+      <li>
+        ...in progress...
+      </li>
+      <li>
+        Test Set Performance and Conclusions
+      </li>
+    </ul>
+  </d-appendix>
+
+
+  <!-- bibliography will be inlined during Distill pipeline's pre-rendering
+    (GG: I have not managed to get the bibliography to compile after the ejs
+     is converted to a static html file, so commenting out)
+  <d-bibliography src="bibliography.bib"></d-bibliography>
+
+   -->
+
+
+</body>
