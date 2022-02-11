@@ -141,19 +141,20 @@ as with /static as their root. E.g. <img src="/diagrams/fig1.png">
     <h4>Probability Ratios</h4>
 
     <p>
-      Using the co-occurrence matrix <d-math>X_{ij}</d-math>, one create the approximate, non-symmetric probabilities
+      Using the symmetric co-occurrence matrix <d-math>X_{ij}</d-math>, one creates the approximate, non-symmetric
+      probabilities
       <d-math>P_{ij}</d-math> defined by
       <d-math block=''>
         P_{ij} \equiv \frac{X_{ij} }{\sum_{k}X_{ik}}
       </d-math>
-      which characterize the frequency with which word <d-math>j</d-math> appears in the context of word <d-math>i
-      </d-math>.
+      which characterize the probability with which one would choose the word <d-math>j</d-math> if randomly selecting
+      amongst all words which appear in the context of word <d-math>i</d-math> in the corpus.
     </p>
 
     <p>
       The central insight of GloVe lies in the realization that it is <em>ratios</em> of the <d-math>P_{ij}</d-math>
-      which provide an accurate measure of the relative importance of words to each other, rather than raw
-      probabilities. This holds in the following sense: take two words <d-math>i, j</d-math> and use additional,
+      which provide an accurate measure of the relative importance of words to each other. This holds in the following
+      sense: take two words <d-math>i, j</d-math> and use additional,
       <em>auxiliary</em> words <d-math>x</d-math> to probe the relation between <d-math>i,j</d-math> and differentiate
       them from each other by computing the ratio <d-math>P_{ix}/P_{jx}</d-math> for various <d-math>x</d-math>. The
       results can be compared to the similar exercise in which one uses the difference <d-math>P_{ix}-P_{jx}
@@ -173,25 +174,24 @@ as with /static as their root. E.g. <img src="/diagrams/fig1.png">
       <img src='images/electro_chromo_probs_plot_abstracts_title_encoded.svg'
         alt='log-probability and diff-probability plots for words probing qed and qcd'>
       <figcaption>
-        Probability ratios and differences using "electrodynamics", "chromodynamics" and various probe words. In each
+        Probability ratios and differences using "electrodynamics", "chromodynamics", and various probe words. In each
         plot, probes near the top of the chart are strongly associated with "electrodynamics" according to the relevant
         metric and those near the bottom with "chromodynamics".
         Parentheses indicate the number of times a given word appears in the arXiv/viXra training abstracts. The top
-        figure provides a much more accurate reflection of the relation between these two words and the given probes.
+        figure provides a much more meaningful reflection of the relation between these two words and the given probes.
       </figcaption>
     </figure>
 
     <p>
       The general advantages of using ratios can be seen: unrelated or non-distinguishing probe words typically yield
-      <d-math>\mathcal{O}(1)</d-math> probability ratios whereas relevant, distinguishing probes significantly tip the
-      scales in the
-      relevant direction. This is often not the case for probability differences. Some examples:
+      <d-math>\mathcal{O}(1)</d-math> probability ratios whereas related, distinguishing probes significantly tip the
+      scales in the relevant direction. This is often not the case for probability differences. Some examples:
     </p>
 
     <ul>
       <li>
         The uninformative probes "the", "of", and comma provide the starkest demonstration of this fact. They lie
-        squarely in the middle of the top chart, but completely dominate the top-end of the bottom chart.
+        squarely in the middle of the top chart, but completely dominate the electrodynamics-end of the bottom chart.
       </li>
       <li>
         Electrodynamics and chromodynamics are both examples of <em>quantum</em> field theories and while I associate
@@ -216,7 +216,8 @@ as with /static as their root. E.g. <img src="/diagrams/fig1.png">
     <p>
       In the GloVe model every word <d-math>i</d-math> is associated to <em>two</em>
       <d-math>d</d-math>-dimensional vectors, <d-math>w_i, \tilde{w}_i</d-math> which are
-      referred to in the GloVe paper as the <em>word</em> and <em>context</em> vector. These are used to model the
+      referred to in the GloVe paper as the <em>word</em> and <em>context</em> vector, respectively. These are used to
+      model the
       probability ratio <d-math>P_{ix}/P_{jx}</d-math> and the mean of the trained <d-math>w_i, \tilde{w}_i</d-math> is
       used as the vector assigned to <d-math>i</d-math> in the ultimate GloVe emedding. Two scalar biases <d-math>b_i,
         \tilde{b}_{i}</d-math> are also associated to each word, whose role will become clear below.
@@ -225,7 +226,11 @@ as with /static as their root. E.g. <img src="/diagrams/fig1.png">
     <p>
       The precise relation between the <d-math>w_i, \tilde{w}_i, b_i, \tilde{b}_{i}</d-math> and the ratio <d-math>
         P_{ix}/P_{jx}</d-math>
-      is motivated by attempting to satisfy the following constraints:
+      is motivated by the following constraints<d-footnote id='glove_presentation'>
+        This presentation is somewhat different from that of the <a target='_blank' rel='noopener noreferrer'
+          href='https://nlp.stanford.edu/pubs/glove.pdf'>GloVe paper</a>. I highly recommend also reading the original
+        source.
+      </d-footnote>:
     </p>
 
     <ul>
@@ -240,15 +245,15 @@ as with /static as their root. E.g. <img src="/diagrams/fig1.png">
           P_{ix}/P_{jx}</d-math> inverts the ratio and this should be reflected in the ultimate relation. Combined with
         the preceding condition, this immediately suggests that the probability ratio will be of the form
         <d-math block=''>
-          P_{ix} \propto \exp\left(w_i\cdot\tilde{w}_x \right) \implies
           \frac{P_{ix}}{P_{jx}} \propto
           \exp\left(w_i-w_j\right)\cdot\tilde{w}_x \ .
         </d-math>
       </li>
       <li>
         The tilded quantities <d-math>\tilde{w}_i, \tilde{b}_{i}</d-math> are associated with
-        <em>context</em> words, as in the second index on <d-math>X_{ij}</d-math>. However, the property of being a
-        context word or not is fairly arbitrary (when <d-math>i</d-math> is in the context of <d-math>j</d-math>,
+        <em>context</em> words, as is the last <d-math>j</d-math> index on <d-math>X_{ij}</d-math>. However, the
+        property of being a
+        context word or not is somewhat arbitrary (when <d-math>i</d-math> is in the context of <d-math>j</d-math>,
         the reverse statement also holds) and this fact should be reflected in the
         tilde markers and index structure. Specifically, any relation between <d-math>w_i,
           \tilde{w}_i, b_j, \tilde{b}_{j}</d-math> and <d-math>X_{ij}</d-math> should be invariant under simultaneously
@@ -353,8 +358,11 @@ as with /static as their root. E.g. <img src="/diagrams/fig1.png">
         </d-code>
         and then normalize and convert to a <d-code language='python'>torch.float</d-code> tensor with the expected
         GloVe normalization afterwards via <d-code language='python'>X = X / 2.</d-code>, if desired. The latter
-        procedure of course has the added benefit of avoiding the accumulation of any floating point numerical errors. I
-        emphasize that the above code is only a cartoon sketch of the code: the actual
+        procedure of course has the added benefit of avoiding the accumulation of any floating point numerical errors.
+        <br>
+        <br>
+
+        I emphasize that the above code is only a cartoon sketch of the code: the actual
         <d-code language='python'>CoMatrixBuilder</d-code>
         code is fully vectorized and <d-code language='python'>X</d-code> is populated using batches drawn from a
         <d-code language='python'>Dataset</d-code> and via calls to
@@ -420,33 +428,116 @@ as with /static as their root. E.g. <img src="/diagrams/fig1.png">
       words for one fully trained GloVe model. The entire series of heatmaps which were generated throughout the
       training process <a target='_blank' rel='noopener noreferrer'
         href='https://wandb.ai/garrett361/arxiv_vixra_examples/reports/GloVe-Cosine-Heatmap--VmlldzoxNTIxNTYy'>can
-        alternatively be viewed here</a>. Some observations:
+        alternatively be viewed here</a>.
     </p>
 
-    <ul>
-      <li>
-        The most tightly coupled tokens are <d-code language='python'>LaTeX</d-code> equation-setting markers $, ^, and
-        \, which necessarily appear near each other in valid <d-code language='python'>LaTeX</d-code>.
-      </li>
-    </ul>
+
 
     <figure style='grid-column-end: page-end' id='heatmap'>
       <img src='images/heatmap.png' alt=''>
       <figcaption>
-
+        Heatmap of the cosine-similarity between various pairs of words.
       </figcaption>
     </figure>
 
     <p>
-      <a target='_blank' rel='noopener noreferrer'
-        href='https://wandb.ai/garrett361/arxiv_vixra_examples/reports/GloVe-t-SNE--VmlldzoxNTIyMTk0'>t-SNE</a>
+      Some observations:
     </p>
+
+    <ul>
+      <li>
+        The results look eminently reasonable and related words clearly point in similar directions. For instance,
+        "machine" and "learning" have a large cosine with each other, but not with any other words in the set, all of
+        which are fairly unrelated to "machine" or "learning".
+      </li>
+      <li>
+        As is becoming a common theme, the algorithm picks up on a strong signal from the
+        <d-code language='python'>LaTeX</d-code> equation-setting markers $, ^, and
+        \ which necessarily appear near each other in valid <d-code language='python'>LaTeX</d-code>.
+      </li>
+      <li>
+        It is clearly meaningful when two vectors are aligned in similar directions, but it is much less common to have
+        significantly
+        <em>anti-aligned</em> vectors whose cosine is significantly negative and the meaning of few examples in which
+        this does happen is not very apparent. From a technical standpoint, this is entirely expected since the
+        components of the initial embedding vectors are drawn from a standard normal distribution and are trained by
+        enforcing
+        <d-math>w_i\cdot \tilde{w}_j\sim \ln X_{ij}</d-math> (ignoring bias terms) where <d-math>\ln X_{ij}</d-math> is
+        typically positive. Therefore, there does not exist an efficient mechanism for anti-aligning vectors. It would
+        be interesting to develop a modification of GloVe in which anti-alignment also carries some semantic meaning.
+      </li>
+    </ul>
 
     <p>
+      Finally, two three-dimensional visualizations of the actual embedding vectors are given below. These are generated
+      using PCA<d-footnote id='pca'>
+        <em>Principal Component Analysis</em> (PCA) is another unsupervised learning algorithm. It is simply the process
+        of finding the eigenvalues of the covariance
+        or correlation matrix for some set of <d-math>d</d-math>-dimensional data points. Usually, one uses this
+        analysis to project the full dataset onto the subspace spanned by the <d-math>n</d-math> eigenvectors whose
+        corresponding eigenvalues are largest and where, typically, <d-math>n \ll d</d-math>, in which case PCA is used
+        for
+        dimensional-reduction. That is, PCA highlights the directions in
+        feature-space along which the data varies the most, since these directions presumably represent the combinations
+        of features which have the greatest ability to differentiate the data points from each other.
+      </d-footnote> and t-SNE<d-footnote id='t_sne'>
+        <em>
+          <d-math>t</d-math>-Distributed Stochastic Neighbor Embedding
+        </em> (t-SNE) is an alternative, unsupervised, dimensional-reduction algorithm. In very rough terms, t-SNE takes
+        the <d-math>N \gg 1</d-math> original data-points <d-math>{\bf x}_i</d-math>, each of which are <d-math>d
+        </d-math>-dimensional, and randomly initializes <d-math>n</d-math>-dimensional counterparts <d-math>{\bf y}_i
+        </d-math> where <d-math>n\in \{2, 3\}</d-math> for visualization purposes. Probabilities <d-math>P_{ij}</d-math>
+        and <d-math>Q_{ij}</d-math> are modeled using the <d-math>{\bf x}_i</d-math> and <d-math>{\bf y}_i</d-math>,
+        respectively. <d-math>P_{ij}</d-math> is designed to be relatively large when the
+        points <d-math>i</d-math> and
+        <d-math>j</d-math> are close together in the original feature space and relatively small when they are well
+        separated, with similar statements holding for <d-math>Q_{ij}</d-math>. The embedding vectors <d-math>{\bf y}_i
+        </d-math> are trained by minimizing the Kullback-Leibler divergence <d-math>D_{\rm KL}(P||Q)</d-math> via
+        gradient descent in the usual way.
+
+        <br>
+        <br>A great post about the
+        interpretation, use, and misuse of t-SNE <a target='_blank' rel='noopener noreferrer'
+          href='https://distill.pub/2016/misread-tsne/'>can be found here.</a> As the post points out, t-SNE primarily
+        captures the topology of the data (if used properly) and there is no guarantee that the apparent sizes of
+        clusters or sizes between
+        clusters in the embedding is an accurate reflection of these properties of the original data. The host of
+        subtleties illustrated in this post should make one extremely wary of reading too much into single t-SNE plots.
+      </d-footnote> respectively. The full timeline of these visualizations throughout training can be found
       <a target='_blank' rel='noopener noreferrer'
-        href='https://wandb.ai/garrett361/arxiv_vixra_examples/reports/GloVe-PCA--VmlldzoxNTIyMjAx'>PCA</a>
+        href='https://wandb.ai/garrett361/arxiv_vixra_examples/reports/GloVe-PCA--VmlldzoxNTIyMjAx'>for PCA here</a> and
+      <a target='_blank' rel='noopener noreferrer'
+        href='https://wandb.ai/garrett361/arxiv_vixra_examples/reports/GloVe-t-SNE--VmlldzoxNTIyMTk0'>for t-SNE
+        here.</a>
     </p>
 
+
+    <figure style='grid-column-end: page-end' id='pca'>
+      <div>
+        <div id="f23cd7da-08bb-4e4a-903d-c9ec97a003d4" class="plotly-graph-div" style="height:100%; width:100%;"></div>
+        <script
+          type="text/javascript">                                    window.PLOTLYENV = window.PLOTLYENV || {}; if (document.getElementById("f23cd7da-08bb-4e4a-903d-c9ec97a003d4")) { Plotly.newPlot("f23cd7da-08bb-4e4a-903d-c9ec97a003d4", [{ "hoverlabel": { "namelength": 0 }, "hovertemplate": "seed=1<br>x=%{x}<br>y=%{y}<br>z=%{z}<br>cos=%{marker.size}<br>word=%{text}", "legendgroup": "seed=1", "marker": { "color": "#636efa", "size": [0.9999998211860657, 0.8783738613128662, 0.765823245048523, 0.7652618885040283, 0.7506253123283386], "sizemode": "area", "sizeref": 0.002500000596046448, "symbol": "circle" }, "mode": "markers+text", "name": "seed=1", "scene": "scene", "showlegend": true, "text": ["1", "2", "4", "3", "0"], "x": [-3.2310056686401367, -3.198662042617798, -2.8963966369628906, -3.132481336593628, -2.404407024383545], "y": [9.305964469909668, 9.806347846984863, 9.001381874084473, 9.627303123474121, 8.744955062866211], "z": [-4.939105033874512, -5.516298294067383, -4.581798076629639, -4.893496990203857, -5.7651238441467285], "type": "scatter3d" }, { "hoverlabel": { "namelength": 0 }, "hovertemplate": "seed=gravity<br>x=%{x}<br>y=%{y}<br>z=%{z}<br>cos=%{marker.size}<br>word=%{text}", "legendgroup": "seed=gravity", "marker": { "color": "#EF553B", "size": [1.0, 0.5525772571563721, 0.5477045774459839, 0.5330404043197632, 0.517711877822876], "sizemode": "area", "sizeref": 0.002500000596046448, "symbol": "diamond" }, "mode": "markers+text", "name": "seed=gravity", "scene": "scene", "showlegend": true, "text": ["gravity", "relativity", "theories", "gravitational", "gravitation"], "x": [-4.6981730461120605, -5.31218957901001, -5.555581092834473, -1.3640334606170654, -1.1967190504074097], "y": [-6.000306129455566, -6.3482441902160645, -2.574807643890381, -5.246684551239014, -6.180788516998291], "z": [-1.6635160446166992, -1.6239140033721924, -0.9129074811935425, -1.50717294216156, -1.2480120658874512], "type": "scatter3d" }, { "hoverlabel": { "namelength": 0 }, "hovertemplate": "seed=equation<br>x=%{x}<br>y=%{y}<br>z=%{z}<br>cos=%{marker.size}<br>word=%{text}", "legendgroup": "seed=equation", "marker": { "color": "#00cc96", "size": [1.0, 0.8251744508743286, 0.5059621334075928, 0.5054689049720764, 0.4742201268672943], "sizemode": "area", "sizeref": 0.002500000596046448, "symbol": "square" }, "mode": "markers+text", "name": "seed=equation", "scene": "scene", "showlegend": true, "text": ["equation", "equations", "nonlinear", "solving", "solution"], "x": [-7.098773002624512, -8.48992919921875, -3.970715284347534, -6.693324565887451, -4.295348167419434], "y": [-0.8755605220794678, -1.0988705158233643, -1.6845333576202393, -1.0242698192596436, -0.32916903495788574], "z": [8.634126663208008, 8.69579792022705, 7.567997932434082, 6.9813151359558105, 3.740561008453369], "type": "scatter3d" }, { "hoverlabel": { "namelength": 0 }, "hovertemplate": "seed=matter<br>x=%{x}<br>y=%{y}<br>z=%{z}<br>cos=%{marker.size}<br>word=%{text}", "legendgroup": "seed=matter", "marker": { "color": "#ab63fa", "size": [1.0, 0.8033843636512756, 0.560192883014679, 0.46494758129119873, 0.4496570825576782], "sizemode": "area", "sizeref": 0.002500000596046448, "symbol": "x" }, "mode": "markers+text", "name": "seed=matter", "scene": "scene", "showlegend": true, "text": ["matter", "dark", "interlayer", "consequence", "universe"], "x": [3.609975814819336, 5.447680473327637, 5.976327419281006, 1.7432836294174194, 0.7274909615516663], "y": [-7.469188213348389, -7.877647876739502, -3.8286972045898438, -3.7245523929595947, -6.1444244384765625], "z": [-6.522304058074951, -7.811644554138184, -6.283527851104736, -1.2463186979293823, -5.593037128448486], "type": "scatter3d" }, { "hoverlabel": { "namelength": 0 }, "hovertemplate": "seed=electron<br>x=%{x}<br>y=%{y}<br>z=%{z}<br>cos=%{marker.size}<br>word=%{text}", "legendgroup": "seed=electron", "marker": { "color": "#FFA15A", "size": [1.000000238418579, 0.6532177925109863, 0.5361852049827576, 0.47793644666671753, 0.4648668169975281], "sizemode": "area", "sizeref": 0.002500000596046448, "symbol": "cross" }, "mode": "markers+text", "name": "seed=electron", "scene": "scene", "showlegend": true, "text": ["electron", "hamiltonian", "monotone", "charge", "proton"], "x": [10.485671043395996, 7.905724048614502, 13.099787712097168, 4.24295711517334, 10.298845291137695], "y": [2.913180351257324, 2.8905532360076904, 1.5545309782028198, 3.3390238285064697, 3.224496603012085], "z": [6.702454566955566, 5.691969394683838, 5.901504993438721, 3.24169921875, 2.950758934020996], "type": "scatter3d" }], { "legend": { "itemsizing": "constant", "tracegroupgap": 0 }, "scene": { "domain": { "x": [0.0, 1.0], "y": [0.0, 1.0] }, "xaxis": { "tickfont": { "color": "rgba(0,0,0,0)" }, "title": { "text": "" } }, "yaxis": { "tickfont": { "color": "rgba(0,0,0,0)" }, "title": { "text": "" } }, "zaxis": { "tickfont": { "color": "rgba(0,0,0,0)" }, "title": { "text": "" } } }, "template": { "data": { "barpolar": [{ "marker": { "line": { "color": "#E5ECF6", "width": 0.5 } }, "type": "barpolar" }], "bar": [{ "error_x": { "color": "#2a3f5f" }, "error_y": { "color": "#2a3f5f" }, "marker": { "line": { "color": "#E5ECF6", "width": 0.5 } }, "type": "bar" }], "carpet": [{ "aaxis": { "endlinecolor": "#2a3f5f", "gridcolor": "white", "linecolor": "white", "minorgridcolor": "white", "startlinecolor": "#2a3f5f" }, "baxis": { "endlinecolor": "#2a3f5f", "gridcolor": "white", "linecolor": "white", "minorgridcolor": "white", "startlinecolor": "#2a3f5f" }, "type": "carpet" }], "choropleth": [{ "colorbar": { "outlinewidth": 0, "ticks": "" }, "type": "choropleth" }], "contourcarpet": [{ "colorbar": { "outlinewidth": 0, "ticks": "" }, "type": "contourcarpet" }], "contour": [{ "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "type": "contour" }], "heatmapgl": [{ "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "type": "heatmapgl" }], "heatmap": [{ "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "type": "heatmap" }], "histogram2dcontour": [{ "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "type": "histogram2dcontour" }], "histogram2d": [{ "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "type": "histogram2d" }], "histogram": [{ "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "type": "histogram" }], "mesh3d": [{ "colorbar": { "outlinewidth": 0, "ticks": "" }, "type": "mesh3d" }], "parcoords": [{ "line": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "type": "parcoords" }], "pie": [{ "automargin": true, "type": "pie" }], "scatter3d": [{ "line": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "type": "scatter3d" }], "scattercarpet": [{ "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "type": "scattercarpet" }], "scattergeo": [{ "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "type": "scattergeo" }], "scattergl": [{ "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "type": "scattergl" }], "scattermapbox": [{ "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "type": "scattermapbox" }], "scatterpolargl": [{ "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "type": "scatterpolargl" }], "scatterpolar": [{ "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "type": "scatterpolar" }], "scatter": [{ "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "type": "scatter" }], "scatterternary": [{ "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "type": "scatterternary" }], "surface": [{ "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "type": "surface" }], "table": [{ "cells": { "fill": { "color": "#EBF0F8" }, "line": { "color": "white" } }, "header": { "fill": { "color": "#C8D4E3" }, "line": { "color": "white" } }, "type": "table" }] }, "layout": { "annotationdefaults": { "arrowcolor": "#2a3f5f", "arrowhead": 0, "arrowwidth": 1 }, "coloraxis": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "colorscale": { "diverging": [[0, "#8e0152"], [0.1, "#c51b7d"], [0.2, "#de77ae"], [0.3, "#f1b6da"], [0.4, "#fde0ef"], [0.5, "#f7f7f7"], [0.6, "#e6f5d0"], [0.7, "#b8e186"], [0.8, "#7fbc41"], [0.9, "#4d9221"], [1, "#276419"]], "sequential": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "sequentialminus": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }, "colorway": ["#636efa", "#EF553B", "#00cc96", "#ab63fa", "#FFA15A", "#19d3f3", "#FF6692", "#B6E880", "#FF97FF", "#FECB52"], "font": { "color": "#2a3f5f" }, "geo": { "bgcolor": "white", "lakecolor": "white", "landcolor": "#E5ECF6", "showlakes": true, "showland": true, "subunitcolor": "white" }, "hoverlabel": { "align": "left" }, "hovermode": "closest", "mapbox": { "style": "light" }, "paper_bgcolor": "white", "plot_bgcolor": "#E5ECF6", "polar": { "angularaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "bgcolor": "#E5ECF6", "radialaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" } }, "scene": { "xaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "gridwidth": 2, "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white" }, "yaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "gridwidth": 2, "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white" }, "zaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "gridwidth": 2, "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white" } }, "shapedefaults": { "line": { "color": "#2a3f5f" } }, "ternary": { "aaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "baxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "bgcolor": "#E5ECF6", "caxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" } }, "title": { "x": 0.05 }, "xaxis": { "automargin": true, "gridcolor": "white", "linecolor": "white", "ticks": "", "title": { "standoff": 15 }, "zerolinecolor": "white", "zerolinewidth": 2 }, "yaxis": { "automargin": true, "gridcolor": "white", "linecolor": "white", "ticks": "", "title": { "standoff": 15 }, "zerolinecolor": "white", "zerolinewidth": 2 } } }, "title": { "text": "large_abstract_glove PCA" } }, { "responsive": true }) };                            </script>
+      </div>
+
+      <figcaption>
+        PCA visualization of a few GloVe embedding vectors. The figure was generated by choosing five "seed" words
+        (listed in the legend) and plotting the seed along with the four words closest to the seed as measured by
+        cosine-similarity. Note that GloVe groups similar words like "gravity", "gravitation", and "gravitational"
+        together despite the fact that these are unlikely to have appeared in each other's context in the corpus.
+      </figcaption>
+    </figure>
+
+    <figure style='grid-column-end: page-end' id='tsne'>
+      <div>
+        <div id="7026ceb0-e87b-4d96-b332-109f3bcf6104" class="plotly-graph-div" style="height:100%; width:100%;"></div>
+        <script
+          type="text/javascript">                                    window.PLOTLYENV = window.PLOTLYENV || {}; if (document.getElementById("7026ceb0-e87b-4d96-b332-109f3bcf6104")) { Plotly.newPlot("7026ceb0-e87b-4d96-b332-109f3bcf6104", [{ "hoverlabel": { "namelength": 0 }, "hovertemplate": "seed=$<br>x=%{x}<br>y=%{y}<br>z=%{z}<br>cos=%{marker.size}<br>word=%{text}", "legendgroup": "seed=$", "marker": { "color": "#636efa", "size": [1.0, 0.7868403792381287, 0.7748569250106812, 0.7514787316322327, 0.7245648503303528], "sizemode": "area", "sizeref": 0.0025000002980232238, "symbol": "circle" }, "mode": "markers+text", "name": "seed=$", "scene": "scene", "showlegend": true, "text": ["$", "_", "\\", "}", "^"], "x": [-3.833282947540283, 3.922907829284668, -6.967216491699219, 0.025894030928611755, 6.685047626495361], "y": [-19.765155792236328, -14.752673149108887, -28.031875610351562, -22.584457397460938, -27.50790786743164], "z": [-3.8844659328460693, -9.201545715332031, -11.535163879394531, -16.257049560546875, -7.511770248413086], "type": "scatter3d" }, { "hoverlabel": { "namelength": 0 }, "hovertemplate": "seed=relativity<br>x=%{x}<br>y=%{y}<br>z=%{z}<br>cos=%{marker.size}<br>word=%{text}", "legendgroup": "seed=relativity", "marker": { "color": "#EF553B", "size": [1.0, 0.5525772571563721, 0.5187642574310303, 0.49496349692344666, 0.47281354665756226], "sizemode": "area", "sizeref": 0.0025000002980232238, "symbol": "diamond" }, "mode": "markers+text", "name": "seed=relativity", "scene": "scene", "showlegend": true, "text": ["relativity", "gravity", "gravitation", "mechanics", "einstein"], "x": [-14.319013595581055, -12.529402732849121, -5.594124794006348, -20.287532806396484, -22.082183837890625], "y": [25.047685623168945, 17.549957275390625, 25.761615753173828, 17.229999542236328, 30.178062438964844], "z": [8.557618141174316, 1.2926371097564697, 3.2356350421905518, 23.19926643371582, 1.9484641551971436], "type": "scatter3d" }, { "hoverlabel": { "namelength": 0 }, "hovertemplate": "seed=quantum<br>x=%{x}<br>y=%{y}<br>z=%{z}<br>cos=%{marker.size}<br>word=%{text}", "legendgroup": "seed=quantum", "marker": { "color": "#00cc96", "size": [1.0, 0.6261546611785889, 0.503940224647522, 0.4800991714000702, 0.456298828125], "sizemode": "area", "sizeref": 0.0025000002980232238, "symbol": "square" }, "mode": "markers+text", "name": "seed=quantum", "scene": "scene", "showlegend": true, "text": ["quantum", "topological", "mechanics", "entanglement", "states"], "x": [-21.930078506469727, -13.484064102172852, -11.7503662109375, -30.515766143798828, -24.227497100830078], "y": [-1.3653762340545654, -4.611811637878418, 16.96726417541504, -11.598149299621582, -16.079273223876953], "z": [26.512840270996094, 22.804698944091797, 24.431276321411133, 20.798377990722656, 11.004179954528809], "type": "scatter3d" }, { "hoverlabel": { "namelength": 0 }, "hovertemplate": "seed=conjecture<br>x=%{x}<br>y=%{y}<br>z=%{z}<br>cos=%{marker.size}<br>word=%{text}", "legendgroup": "seed=conjecture", "marker": { "color": "#ab63fa", "size": [1.0000001192092896, 0.6860231161117554, 0.5575299263000488, 0.5525608658790588, 0.516330897808075], "sizemode": "area", "sizeref": 0.0025000002980232238, "symbol": "x" }, "mode": "markers+text", "name": "seed=conjecture", "scene": "scene", "showlegend": true, "text": ["conjecture", "interacting", "elliptical", "intervals", "block"], "x": [-6.673478603363037, -4.986083507537842, -6.640928268432617, 3.322826862335205, -7.2556257247924805], "y": [-30.01900863647461, -37.615501403808594, -17.205726623535156, -24.919225692749023, -18.11598777770996], "z": [32.350135803222656, 27.095190048217773, 26.448911666870117, 30.347991943359375, 17.588703155517578], "type": "scatter3d" }, { "hoverlabel": { "namelength": 0 }, "hovertemplate": "seed=field<br>x=%{x}<br>y=%{y}<br>z=%{z}<br>cos=%{marker.size}<br>word=%{text}", "legendgroup": "seed=field", "marker": { "color": "#FFA15A", "size": [1.0, 0.8560082912445068, 0.5825604200363159, 0.4907659888267517, 0.485146701335907], "sizemode": "area", "sizeref": 0.0025000002980232238, "symbol": "cross" }, "mode": "markers+text", "name": "seed=field", "scene": "scene", "showlegend": true, "text": ["field", "sets", "magnetic", "theory", "in"], "x": [-35.44501876831055, -26.85612678527832, -31.81546401977539, -10.505354881286621, -13.244511604309082], "y": [-4.094867706298828, -4.206455230712891, -14.267704010009766, -0.24417030811309814, -13.275087356567383], "z": [-13.768932342529297, -12.368289947509766, -19.156457901000977, 10.47934627532959, 8.375273704528809], "type": "scatter3d" }], { "legend": { "itemsizing": "constant", "tracegroupgap": 0 }, "scene": { "domain": { "x": [0.0, 1.0], "y": [0.0, 1.0] }, "xaxis": { "tickfont": { "color": "rgba(0,0,0,0)" }, "title": { "text": "" } }, "yaxis": { "tickfont": { "color": "rgba(0,0,0,0)" }, "title": { "text": "" } }, "zaxis": { "tickfont": { "color": "rgba(0,0,0,0)" }, "title": { "text": "" } } }, "template": { "data": { "barpolar": [{ "marker": { "line": { "color": "#E5ECF6", "width": 0.5 } }, "type": "barpolar" }], "bar": [{ "error_x": { "color": "#2a3f5f" }, "error_y": { "color": "#2a3f5f" }, "marker": { "line": { "color": "#E5ECF6", "width": 0.5 } }, "type": "bar" }], "carpet": [{ "aaxis": { "endlinecolor": "#2a3f5f", "gridcolor": "white", "linecolor": "white", "minorgridcolor": "white", "startlinecolor": "#2a3f5f" }, "baxis": { "endlinecolor": "#2a3f5f", "gridcolor": "white", "linecolor": "white", "minorgridcolor": "white", "startlinecolor": "#2a3f5f" }, "type": "carpet" }], "choropleth": [{ "colorbar": { "outlinewidth": 0, "ticks": "" }, "type": "choropleth" }], "contourcarpet": [{ "colorbar": { "outlinewidth": 0, "ticks": "" }, "type": "contourcarpet" }], "contour": [{ "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "type": "contour" }], "heatmapgl": [{ "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "type": "heatmapgl" }], "heatmap": [{ "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "type": "heatmap" }], "histogram2dcontour": [{ "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "type": "histogram2dcontour" }], "histogram2d": [{ "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "type": "histogram2d" }], "histogram": [{ "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "type": "histogram" }], "mesh3d": [{ "colorbar": { "outlinewidth": 0, "ticks": "" }, "type": "mesh3d" }], "parcoords": [{ "line": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "type": "parcoords" }], "pie": [{ "automargin": true, "type": "pie" }], "scatter3d": [{ "line": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "type": "scatter3d" }], "scattercarpet": [{ "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "type": "scattercarpet" }], "scattergeo": [{ "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "type": "scattergeo" }], "scattergl": [{ "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "type": "scattergl" }], "scattermapbox": [{ "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "type": "scattermapbox" }], "scatterpolargl": [{ "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "type": "scatterpolargl" }], "scatterpolar": [{ "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "type": "scatterpolar" }], "scatter": [{ "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "type": "scatter" }], "scatterternary": [{ "marker": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "type": "scatterternary" }], "surface": [{ "colorbar": { "outlinewidth": 0, "ticks": "" }, "colorscale": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "type": "surface" }], "table": [{ "cells": { "fill": { "color": "#EBF0F8" }, "line": { "color": "white" } }, "header": { "fill": { "color": "#C8D4E3" }, "line": { "color": "white" } }, "type": "table" }] }, "layout": { "annotationdefaults": { "arrowcolor": "#2a3f5f", "arrowhead": 0, "arrowwidth": 1 }, "coloraxis": { "colorbar": { "outlinewidth": 0, "ticks": "" } }, "colorscale": { "diverging": [[0, "#8e0152"], [0.1, "#c51b7d"], [0.2, "#de77ae"], [0.3, "#f1b6da"], [0.4, "#fde0ef"], [0.5, "#f7f7f7"], [0.6, "#e6f5d0"], [0.7, "#b8e186"], [0.8, "#7fbc41"], [0.9, "#4d9221"], [1, "#276419"]], "sequential": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]], "sequentialminus": [[0.0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1.0, "#f0f921"]] }, "colorway": ["#636efa", "#EF553B", "#00cc96", "#ab63fa", "#FFA15A", "#19d3f3", "#FF6692", "#B6E880", "#FF97FF", "#FECB52"], "font": { "color": "#2a3f5f" }, "geo": { "bgcolor": "white", "lakecolor": "white", "landcolor": "#E5ECF6", "showlakes": true, "showland": true, "subunitcolor": "white" }, "hoverlabel": { "align": "left" }, "hovermode": "closest", "mapbox": { "style": "light" }, "paper_bgcolor": "white", "plot_bgcolor": "#E5ECF6", "polar": { "angularaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "bgcolor": "#E5ECF6", "radialaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" } }, "scene": { "xaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "gridwidth": 2, "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white" }, "yaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "gridwidth": 2, "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white" }, "zaxis": { "backgroundcolor": "#E5ECF6", "gridcolor": "white", "gridwidth": 2, "linecolor": "white", "showbackground": true, "ticks": "", "zerolinecolor": "white" } }, "shapedefaults": { "line": { "color": "#2a3f5f" } }, "ternary": { "aaxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "baxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" }, "bgcolor": "#E5ECF6", "caxis": { "gridcolor": "white", "linecolor": "white", "ticks": "" } }, "title": { "x": 0.05 }, "xaxis": { "automargin": true, "gridcolor": "white", "linecolor": "white", "ticks": "", "title": { "standoff": 15 }, "zerolinecolor": "white", "zerolinewidth": 2 }, "yaxis": { "automargin": true, "gridcolor": "white", "linecolor": "white", "ticks": "", "title": { "standoff": 15 }, "zerolinecolor": "white", "zerolinewidth": 2 } } }, "title": { "text": "large_abstract_glove t-SNE" } }, { "responsive": true }) };                            </script>
+      </div>
+
+      <figcaption>
+        t-SNE visualization of a few GloVe embedding vectors, generated similarly to the PCA plot above.
+      </figcaption>
+    </figure>
 
 
 
