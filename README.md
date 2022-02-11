@@ -1,3 +1,3 @@
-# arXiv/viXra - Workflow
+# arXiv/viXra - Embeddings
 
-[Description of the workflow for my arXiv/viXra project.](https://garrettgoon.com/arxiv-vixra-workflow/)
+[Details my implementation of the GloVe embedding algorithm.](https://garrettgoon.com/arxiv-vixra-embeddings/)

@@ -8,7 +8,8 @@ as with /static as their root. E.g. <img src="/diagrams/fig1.png">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="template.v2.js"></script>
-  <title>arXiv/viXra - Workflow - Garrett Goon</title>
+  <title>arXiv/viXra - Embeddings - Garrett Goon</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 
 <body>
@@ -18,7 +19,7 @@ as with /static as their root. E.g. <img src="/diagrams/fig1.png">
   <d-front-matter>
     <script type="text/json">
       {
-        "title": "arXiv/viXra - Workflow",
+        "title": "arXiv/viXra - Embeddings",
         "authors": [
           {
             "author": "Garrett Goon",
@@ -47,294 +48,407 @@ as with /static as their root. E.g. <img src="/diagrams/fig1.png">
   </d-front-matter>
 
   <d-title>
-    <h1>arXiv/viXra - Workflow</h1>
-    <p>Colab, PyTorch Lightning, and Weights and Biases</p>
+    <h1>arXiv/viXra - Embeddings</h1>
+    <p>[Insert joke about gloves here.]</p>
   </d-title>
 
 
   <d-article>
+
     <p>
-      Include <a target='_blank' rel='noopener noreferrer' href='/home/garrett/Git/arxiv-vixra-workflow'>This cheat
-        sheet</a> and NLP stanford linkg
+      <em>
+        <u>Note:</u>
+      </em> The Jupyter/Colab notebooks relevant to this post are
+      <a target='_blank' rel='noopener noreferrer'
+        href='https://github.com/garrett361/arxiv-vixra-ml/tree/main/glove'>here on my GitHub page.</a>
+      My vectorized <d-code language='python'>pytorch_lightning</d-code> GloVe implementation considered in this post
+      <a target='_blank' rel='noopener noreferrer'
+        href='https://github.com/garrett361/arxiv-vixra-ml/blob/main/arxiv_vixra_models/glove.py'>can be
+        found here.</a>
+    </p>
+
+
+    <h3>Language Learning</h3>
+
+    <p>
+      The models I have considered up to this point have been purely trained on the task of distinguishing arXiv and
+      viXra papers. Though the recurrent architectures <a target='_blank' rel='noopener noreferrer'
+        href='https://garrettgoon.com/arxiv-vixra-simple-recurrent/'>detailed here</a> have some awareness of the
+      positional relations between the words in the relevant text, I have not specifically attempted to attune them to
+      the patterns inherent in language.
     </p>
 
     <p>
-      Without good tools and organization, it is easy for a project to get out of hand. Below I describe
-      the tools and workflow used for the arXiv/viXra project.
-    </p>
-
-    <h3>Tools and Organization</h3>
-
-    <p>
-      I used <a target='_blank' rel='noopener noreferrer' href='https://colab.research.google.com/signup'>Google Colab
-        Pro+</a> notebooks in order to access GPUs, with <a target='_blank' rel='noopener noreferrer'
-        href='https://www.pytorchlightning.ai/'>
-        <d-code language='python'>pytorch lightning</d-code>
-      </a>
-      on top of vanilla <a target='_blank' rel='noopener noreferrer' href='https://pytorch.org/'>
-        <d-code language='python'>pytorch</d-code>
-      </a>
-      for coding efficiency, and <a target='_blank' rel='noopener noreferrer' href='https://wandb.ai/site'>
-        <d-code language='python'>wandb</d-code>
-      </a>
-      to track and visualize the results of model training.
-    </p>
-
-    <h4>
-      Google Colab
-    </h4>
-
-    <p>
-      Google Colab noteboks are essentially cloud-based, slightly modified Jupyter notebooks which can easily be synced
-      up
-      with Google Drive<d-footnote id='slow-drive'>
-        Beware: reading data directly from Drive is very slow! Files on Drive can be copied to the Colab
-        notebook <d-code language='python'>cwd</d-code> via code such as
-        <d-code block='' language='python'>
-          from google.colab import drive
-          drive.mount("/content/drive")
-          !cp 'path_to_data_on_Drive' . # Don't forget the period.
-        </d-code>
-        Pulling from the copied file(s) will be much faster than pulling from Drive.
-      </d-footnote>. The number of simultaneous notebooks one can run, their maximum runtime, and the GPU specs
-      and amount of RAM Google provides are all determined by current demand, historical use, and subscription level
-      <d-footnote id='cost'>
-        I sprung for the
-        most expensive option ($50/month), which nonetheless seemed economical when compared to AWS instances and other,
-        similar
-        options.
-      </d-footnote>. They are not without headaches, but overall I have been very pleased with the Colab experience.
-    </p>
-
-    <h4>
-      PyTorch Lightning
-    </h4>
-
-    <p>
-      <d-code language='python'>pytorch</d-code> appears to have solidified a solid lead amongst the various ML research
-      frameworks available (sorry <d-code language='python'>tensorflow</d-code>) due, in part, to its flexibility and
-      highly pythonic API.
+      Models view the world fairly myopically, with a single-minded focus on the training objective. For instance,
+      though the recurrent architectures do a reasonable job of distinguishing arXiv from viXra, one would expect them
+      to perform poorly if asked to transfer their knowledge to tasks such as clustering semantically related words
+      together or predicting the next word in a title, given all preceding words. I would not expect them to have
+      learned much meaningful information about the structure of language.
     </p>
 
     <p>
-      <d-code language='python'>pytorch lightning</d-code> (<d-code language='python'>pl</d-code>) improves the <d-code
-        language='python'>pytorch</d-code>
-      experience further by removing much of the boilerplate code needed in developing, training, and testing models. A
-      few features:
+      Natural Language Processing (NLP) models can <a target='_blank' rel='noopener noreferrer'
+        href='https://arxiv.org/abs/1801.06146'>benefit
+        greatly</a> from the reversed process: first train a base model on a fundamental NLP task in which they
+      learn some aspect of human language, then take the
+      trained components and incorporate them into a model used for a different task, such as
+      arXiv/viXra classification. This procedure falls under the umbrella of <em>transfer learning</em>, which initially
+      found great success in Computer Vision tasks and which has more recently become a standard tool for NLP.
+    </p>
+
+    <p>
+      In this post I focus on the clustering task above in which we cluster related words together. More
+      specifically, I consider the use of embeddings in which every word in a relevant vocabulary is represented as a
+      vector in some high-dimensional space and one algorithm for determining the configuration of all such vectors
+      <d-footnote id='unsupervised'>
+        This is an example of <em>unsupervised learning</em> in which we essentially hand the model a bunch of data and
+        instruct it to look for interesting patterns. The GloVe model will align the vectors associated to related words
+        in similar directions and we are not imposing any ground-truth for what direction that should be. arXiv/viXra
+        classification, in contrast, is essentially the canonical example of <em>supervised</em> learning in which we
+        have specific ground-truth labels for every piece of text and the model is explicitly judged on its ability to
+        predict these labels correctly. Many models involve both types of learning and the distinction between the two
+        is not entirely sharp.
+      </d-footnote>. The
+      resulting trained embeddings will be incorporated into future models.
+    </p>
+
+
+    <h3>GloVe</h3>
+
+    <p>
+      The <em>Global Vector</em> or GloVe model <a target='_blank' rel='noopener noreferrer'
+        href='https://nlp.stanford.edu/projects/glove/'>is a beautiful, and relatively simple, algorithm</a> which
+      trains embeddings based on the frequency with which words appear near one another in the relevant text. This
+      information is captured in the <em>co-occurrence matrix</em>, a symmetric matrix <d-math>X_{ij}</d-math> in which
+      the <d-math>i,j</d-math>
+      component counts<d-footnote id='counts'>
+        In reality, the GloVe authors do not build <d-math>X_{ij}</d-math> by strictly counting the
+        appearances of words surrounding the center-word in each context window. Instead, they use a weighted version of
+        this count in which the weights
+        decay proportionally to the inverse distance to the center-word, which is intuitively reasonable. This is the
+        default behavior of the vectorized <d-code language='python'>CoMatriBuilder</d-code> class in <a target='_blank'
+          rel='noopener noreferrer'
+          href='https://github.com/garrett361/arxiv-vixra-ml/blob/main/arxiv_vixra_models/glove.py'>my Github code</a>
+        which constructs <d-math>X_{ij}</d-math>, though the naive-count can be re-instated via the
+        <d-code language='python'>glove_window_weighting</d-code> flag.
+      </d-footnote> the number of times that the word associated to index <d-math>j</d-math> appears in the
+      <em>context</em> of word associated to index <d-math>i</d-math>. Two such words appear in the same context if they
+      are within a distance <d-code language='python'>context_window</d-code> of each other, with this parameter set by
+      the implementer, often taken in the <d-math>\sim 2,3,5</d-math> range.
+    </p>
+
+
+    <h4>Probability Ratios</h4>
+
+    <p>
+      Using the co-occurrence matrix <d-math>X_{ij}</d-math>, one create the approximate, non-symmetric probabilities
+      <d-math>P_{ij}</d-math> defined by
+      <d-math block=''>
+        P_{ij} \equiv \frac{X_{ij} }{\sum_{k}X_{ik}}
+      </d-math>
+      which characterize the frequency with which word <d-math>j</d-math> appears in the context of word <d-math>i
+      </d-math>.
+    </p>
+
+    <p>
+      The central insight of GloVe lies in the realization that it is <em>ratios</em> of the <d-math>P_{ij}</d-math>
+      which provide an accurate measure of the relative importance of words to each other, rather than raw
+      probabilities. This holds in the following sense: take two words <d-math>i, j</d-math> and use additional,
+      <em>auxiliary</em> words <d-math>x</d-math> to probe the relation between <d-math>i,j</d-math> and differentiate
+      them from each other by computing the ratio <d-math>P_{ix}/P_{jx}</d-math> for various <d-math>x</d-math>. The
+      results can be compared to the similar exercise in which one uses the difference <d-math>P_{ix}-P_{jx}
+      </d-math>, say, and the results will generally demonstrate that the former captures the essential meaning of
+      <d-math>i,j</d-math> much better than the latter.
+    </p>
+
+    <p>
+      A physics example: electrodynamics and chromodynamics. Both of these are theories of matter, describing the
+      interactions of electrically or magnetically charged objects and the inner-workings of nuclei, respectively. A
+      comparison between the (logarithm of the) probability ratios and the probability differences as computed from the
+      arXiv/viXra abstract training data is below.
+    </p>
+
+
+    <figure style='grid-column-end: page-end' id='qed_qcd'>
+      <img src='images/electro_chromo_probs_plot_abstracts_title_encoded.svg'
+        alt='log-probability and diff-probability plots for words probing qed and qcd'>
+      <figcaption>
+        Probability ratios and differences using "electrodynamics", "chromodynamics" and various probe words. In each
+        plot, probes near the top of the chart are strongly associated with "electrodynamics" according to the relevant
+        metric and those near the bottom with "chromodynamics".
+        Parentheses indicate the number of times a given word appears in the arXiv/viXra training abstracts. The top
+        figure provides a much more accurate reflection of the relation between these two words and the given probes.
+      </figcaption>
+    </figure>
+
+    <p>
+      The general advantages of using ratios can be seen: unrelated or non-distinguishing probe words typically yield
+      <d-math>\mathcal{O}(1)</d-math> probability ratios whereas relevant, distinguishing probes significantly tip the
+      scales in the
+      relevant direction. This is often not the case for probability differences. Some examples:
     </p>
 
     <ul>
       <li>
-        <d-code language='python'>pl</d-code> handles moving tensors to the proper device. No explicit <d-code
-          language='python'>some_tensor.to('cuda')</d-code> calls needed for utilizing GPUs.
+        The uninformative probes "the", "of", and comma provide the starkest demonstration of this fact. They lie
+        squarely in the middle of the top chart, but completely dominate the top-end of the bottom chart.
       </li>
       <li>
-        <d-code language='python'>pl</d-code>'s <a target='_blank' rel='noopener noreferrer'
-          href='https://pytorch-lightning.readthedocs.io/en/latest/common/lightning_module.html'>
-          <d-code language='python'>LightningModule</d-code>
-          <<<<<<< HEAD </a> (a subclass of
-            <d-code language='python'>nn.Module</d-code>) encapsulates the model architecture, optimizer, and (train,
-            val,
-            test)-loop code in a neat package, while still allowing for massive customization and minimizing bookkeeping
-            =======
-        </a> (a subclass of <d-code language='python'>pytorch</d-code>'s
-        <d-code language='python'>nn.Module</d-code>) encapsulates the model architecture, optimizer, and
-        <d-code language='python'>{train, val, test}</d-code>-loop code in a neat package, while still allowing for
-        massive customization and minimizing
-        >>>>>>> f9399d321e76cc24fa271e6b5a3df4d0c6aa07d2
-        code<d-footnote id='bookkeeping'>
-          For example, there is no need to zero-out gradients, call <d-code language='html'>model.eval()</d-code>/
-          <d-code language='python'>model.train()</d-code>, or write <d-code language='python'>optimizer.step()</d-code>
-          manually.
-        </d-footnote>.
+        Electrodynamics and chromodynamics are both examples of <em>quantum</em> field theories and while I associate
+        the concept of quantum-ness somewhat more closely with the latter word (as the classical, non-quantum limit of
+        electrodynamics is more relevant than the similar limit of chromodynamics), I wouldn't expect the difference to
+        be huge. This is reflected in the top chart, but not the bottom where "quantum" dominates the entire plot.
       </li>
       <li>
-        <d-code language='python'>pl</d-code>'s <a target='_blank' rel='noopener noreferrer' <<<<<<< HEAD
-          href='https://pytorch-lightning.readthedocs.io/en/latest/api/pytorch_lightning.trainer.trainer.html?highlight=Trainer'>
-          <d-code language='python'>Trainer</d-code>
-        </a> class similarly encapsulates all stages of the train/val/test loops in a single place.
-        =======
-        href='https://pytorch-lightning.readthedocs.io/en/latest/extensions/datamodules.html'>
-        <d-code language='python'>LightningDataModule</d-code>
-        </a> similarly encapsulates all elements related to the <d-code language='python'>{train, val, test}</d-code>
-        data and
-        <d-code language='python'>pl</d-code>'s
-        <a target='_blank' rel='noopener noreferrer'
-          href='https://pytorch-lightning.readthedocs.io/en/latest/api/pytorch_lightning.trainer.trainer.html?highlight=Trainer'>
-          <d-code language='python'>Trainer</d-code>
-        </a> ties the preceding elements together at runtime.
-        >>>>>>> f9399d321e76cc24fa271e6b5a3df4d0c6aa07d2
+        Other probes which are associated with both words ("theory", "renormalization", "gauge", "loop") lie
+        nicely in the middle of the ratio plot, whereas they are more scattered in the difference plot.
+      </li>
+      <li>
+        The extremes of the ratio-plot accurately reflect strength-of-association: "electric" is inherently
+        electrodynamic, while "color" (unrelated to visual phenomena) is inherently chromodynamic.
       </li>
     </ul>
 
-    <h4>
-      Weights and Biases
+
+    <h4>Embeddings from <d-math>X</d-math>
     </h4>
 
     <p>
-      Weights and Biases (<d-code language='python'>wandb</d-code>) is a lightweight, cloud-based platform for easily
-      tracking, organizing, and visualizing the
-      many iterations of models and training runs in a project. Further, <d-code language='python'>wandb</d-code> can be
-      used to automate hyperparameter sweeps with a menu flexible options. It is easy to use and has
-      <d-code language='python'>pytorch lightning</d-code>
-      integration via <d-code language='python'>pl</d-code>'s <a target='_blank' rel='noopener noreferrer'
-        href='https://pytorch-lightning.readthedocs.io/en/latest/extensions/generated/pytorch_lightning.loggers.WandbLogger.html?highlight=WandbLogger'>
-        <d-code language='python'>WandbLogger</d-code>
-      </a> module.
+      In the GloVe model every word <d-math>i</d-math> is associated to <em>two</em>
+      <d-math>d</d-math>-dimensional vectors, <d-math>w_i, \tilde{w}_i</d-math> which are
+      referred to in the GloVe paper as the <em>word</em> and <em>context</em> vector. These are used to model the
+      probability ratio <d-math>P_{ix}/P_{jx}</d-math> and the mean of the trained <d-math>w_i, \tilde{w}_i</d-math> is
+      used as the vector assigned to <d-math>i</d-math> in the ultimate GloVe emedding. Two scalar biases <d-math>b_i,
+        \tilde{b}_{i}</d-math> are also associated to each word, whose role will become clear below.
     </p>
 
     <p>
-      In addition to tracking any desired statistics for training runs, one can also upload arbitrary files for each run
-      (such as the <d-code language='python'>state_dict</d-code> for a saved <d-code language='python'>pytorch</d-code>
-      model) and easily generate useful visualizations comparing runs or illustrating the results of a single run.
+      The precise relation between the <d-math>w_i, \tilde{w}_i, b_i, \tilde{b}_{i}</d-math> and the ratio <d-math>
+        P_{ix}/P_{jx}</d-math>
+      is motivated by attempting to satisfy the following constraints:
+    </p>
+
+    <ul>
+      <li>
+        The vector operations on the <d-math>w_i, \tilde{w}_i</d-math> should respect the usual symmetries of <d-math>
+          \mathbb{R}^d</d-math>, i.e. only dot
+        products and vector differences should be used. This facilitates our ability to interpret the final
+        trained model in the natural way, as it singles out the dot-product, for instance, as an important operation.
+      </li>
+      <li>
+        Swapping <d-math>i,j</d-math> in <d-math>
+          P_{ix}/P_{jx}</d-math> inverts the ratio and this should be reflected in the ultimate relation. Combined with
+        the preceding condition, this immediately suggests that the probability ratio will be of the form
+        <d-math block=''>
+          P_{ix} \propto \exp\left(w_i\cdot\tilde{w}_x \right) \implies
+          \frac{P_{ix}}{P_{jx}} \propto
+          \exp\left(w_i-w_j\right)\cdot\tilde{w}_x \ .
+        </d-math>
+      </li>
+      <li>
+        The tilded quantities <d-math>\tilde{w}_i, \tilde{b}_{i}</d-math> are associated with
+        <em>context</em> words, as in the second index on <d-math>X_{ij}</d-math>. However, the property of being a
+        context word or not is fairly arbitrary (when <d-math>i</d-math> is in the context of <d-math>j</d-math>,
+        the reverse statement also holds) and this fact should be reflected in the
+        tilde markers and index structure. Specifically, any relation between <d-math>w_i,
+          \tilde{w}_i, b_j, \tilde{b}_{j}</d-math> and <d-math>X_{ij}</d-math> should be invariant under simultaneously
+        swapping <d-math>i\longleftrightarrow j</d-math> and tildes for non-tildes. This constraint is satisfied by
+        taking
+        <d-math block=''>
+          w_i\cdot \tilde{w}_x +b_i +\tilde{b}_x = \ln X_{ix}\ ,
+        </d-math>
+        where the logarithm enforces the exponential form motivated in the previous bullet point. The
+        role of the
+        biases <d-math>b_i, \tilde{b}_i
+        </d-math> is therefore to ensure this context/non-context symmetry. We can finally
+        tidy up by identifying <d-math>\exp b_i</d-math> with <d-math>\sum_y X_{iy}</d-math>, after which the above
+        relation
+        corresponds to having exactly
+        <d-math block=''>
+          \frac{P_{ix}}{P_{jx}} =
+          \exp\left(w_i-w_j\right)\cdot\tilde{w}_x \ .
+        </d-math>
+      </li>
+    </ul>
+
+
+    <p>
+      The GloVe algorithm sets its learnable parameters (the vectors and biases) by attempting to enforce the <d-math>
+        w_i\cdot \tilde{w}_x +b_i
+        +\tilde{b}_x = \ln X_{ix}</d-math> constraint. Specifically, it does so by minimizing the following
+      loss-function<d-footnote id='loss'>
+        This loss-function is where much of the technical magic of GloVe lies. <a target='_blank'
+          rel='noopener noreferrer' href='https://arxiv.org/abs/1301.3781'>word2vec</a>, the dominant embedding training
+        algorithm prior to GloVe, requires computing the probability that certain words appear in the context of others.
+        The naive probability calculation would require a very expensive softmax computation over the full vocabulary
+        size and various machinations are needed to approximate this with more efficient methods. GloVe does away with
+        the need for any softmax at all: only the co-occurrence matrix is needed in the loss function.
+      </d-footnote>:
+      <d-math block=''>
+        J = \sum_{i,j} f\left(X_{ij}\right) \left(w_i\cdot \tilde{w}_j +b_i
+        +\tilde{b}_j - \ln X_{ij}\right) ^2
+      </d-math>
+      where the function <d-math>f(x)</d-math> should vanish fast enough so that above doesn't diverge<d-footnote
+        id='diverge'>
+        Consequently, all such word pairs with vanishing <d-math>X_{ij}</d-math> generate zero gradients for the
+        learnable parameters and can be omitted from the sum.
+      </d-footnote> for word-pairs
+      with <d-math>X_{ij}=0
+      </d-math> and should also be tuned as to avoid overweighing very frequent and very infrequent word-pairs in some
+      artful way<d-footnote id='f'>
+        The authors choose a piecewise form, <d-math>f(x) = (x/x_{\rm max})^\alpha</d-math> if <d-math>x\le x_{\rm
+          max}</d-math> and <d-math>f(x)=1</d-math> otherwise, with <d-math>\alpha=3/4, x_{\rm max}=100</d-math> the
+        hyperparameter choices
+        made in the paper.
+      </d-footnote>.
+    </p>
+
+
+    <h3>Implementation and Analysis</h3>
+
+
+    <h4>Code Highlights</h4>
+
+    <p>
+      The GloVe algorithm is fairly simple, ultimately, and it is straightforward to create a reasonably efficient
+      <d-code language='python'>pytorch</d-code>-based implementation of both the central GloVe algorithm and
+      the co-occurrence matrix builder.
     </p>
 
     <p>
-      Below are two such examples of single-run visualizations.
-    </p>
-
-    <p>
-      <<<<<<< HEAD First: a histogram demonstrating how the probabilities predicted by one particular model change with
-        training time (<d-math>p=1</d-math> corresponding to a prediction that the title is definitely from viXra). The
-        predictions
-        spread out from <d-math>p=.5</d-math> in the expected manner (hover to see individual steps):
-        =======
-        First: histograms demonstrating how the probabilities assigned to a sample of papers evolves with training time,
-        as predicted by a particular model. Here <d-math>p</d-math> (y-axis) is the probability that a given paper is
-        from
-        viXra. The predictions spread out from <d-math>p=.5</d-math> in the expected manner (hover to see details of
-        individual time-steps).
-        <a target='_blank' rel='noopener noreferrer'
-          href='https://wandb.ai/garrett361/balanced_title_recurrent_one_hot/reports/arXiv-viXra-Probability-Histogram--VmlldzoxMzQ3MTkx'>(Direct
-          link here.)</a>
-        >>>>>>> f9399d321e76cc24fa271e6b5a3df4d0c6aa07d2
-    </p>
-
-    <iframe
-      src="https://wandb.ai/garrett361/balanced_title_recurrent_one_hot/reports/Shared-panel-21-12-15-22-12-51--VmlldzoxMzQ3MTkx?highlightShare"
-      style="border:none;height:1024px;width:100%"></iframe>
-
-    <p>
-      Second: predictions for specific titles generated by same model as above. By
-      allowing for easy inspection of specific examples, <d-code language='python'>wandb</d-code> makes it easier to
-      spot patterns (and possible signs of cheating or code issues) in the results. <a target='_blank'
+      The co-occurrence matrix builder (<d-code language='python'>CoMatrixBuilder</d-code> <a target='_blank'
         rel='noopener noreferrer'
-        href='https://wandb.ai/garrett361/balanced_title_recurrent_one_hot/reports/Sample-Title-Predictions--VmlldzoxMzQ3MjMy'>(Direct
-        link here.)</a>
+        href='https://github.com/garrett361/arxiv-vixra-ml/blob/main/arxiv_vixra_models/glove.py'>in the code here</a>)
+      only uses <d-code language='python'>pytorch</d-code> elements in that it returns a <a target='_blank'
+        rel='noopener noreferrer' href='https://pytorch.org/docs/stable/sparse.html'>sparse tensor</a>
+      <d-footnote id='sparse'>
+        Sparse tensors cannot be written to directly in <d-code language='python'>pytorch</d-code>, so the code
+        initially generates a <d-code language='python'>torch.zeros</d-code> tensor and convert it to a sparse one
+        upon completion for space efficiency.
+      </d-footnote> which is filled
+      by reading in the text using a custom <d-code language='python'>Dataset</d-code>
+      (<d-code language='python'>CoMatrixDataset</d-code> <a target='_blank' rel='noopener noreferrer'
+        href='https://github.com/garrett361/arxiv-vixra-ml/blob/main/arxiv_vixra_models/datasets.py'>in code here</a>)
+      and a <d-code language='python'>DataLoader</d-code> in the usual way. These latter elements are used for
+      efficiency<d-footnote id='int64'>
+        When weighing the elements in a given word's context window are weighed proportionally to their inverse
+        distance, as the GloVe paper does, I found that another efficiency boost comes from performing using a
+        <d-code language='python'>torch.int64</d-code> tensor, rather than a
+        <d-code language='python'>torch.float</d-code>. For instance, for a text snippet with
+        <d-code language='python'>context_window = 2</d-code>, say "GloVe is beautiful and simple" where "beautiful" is
+        the center word, a naive implementation would take the co-occurrence matrix
+        <d-code language='python'>X</d-code> and essentially do (schematic sketch)
+        <d-code block='' language='python'>
+          X['beautiful', 'is'] += 1.
+          X['beautiful', 'and'] += 1.
+          X['beautiful', 'GloVe'] += 1. / 2.
+          X['beautiful', 'simple'] += 1. / 2.
+        </d-code>
+        whereas it is much faster to instead use <d-code language='python'>int</d-code> everywhere as in
+        <d-code block='' language='python'>
+          X['beautiful', 'is'] += 2
+          X['beautiful', 'and'] += 2
+          X['beautiful', 'GloVe'] += 1
+          X['beautiful', 'simple'] += 1
+        </d-code>
+        and then normalize and convert to a <d-code language='python'>torch.float</d-code> tensor with the expected
+        GloVe normalization afterwards via <d-code language='python'>X = X / 2.</d-code>, if desired. The latter
+        procedure of course has the added benefit of avoiding the accumulation of any floating point numerical errors. I
+        emphasize that the above code is only a cartoon sketch of the code: the actual
+        <d-code language='python'>CoMatrixBuilder</d-code>
+        code is fully vectorized and <d-code language='python'>X</d-code> is populated using batches drawn from a
+        <d-code language='python'>Dataset</d-code> and via calls to
+        functions like <a target='_blank' rel='noopener noreferrer'
+          href='https://pytorch.org/docs/stable/generated/torch.Tensor.index_add_.html'>
+          <d-code language='python'>index_add_</d-code>
+        </a> and
+        <a target='_blank' rel='noopener noreferrer'
+          href='https://pytorch.org/docs/stable/generated/torch.Tensor.scatter_add_.html'>
+          <d-code language='python'>scatter_add_</d-code>
+        </a>.
+      </d-footnote>, as they populate the co-occurrence matrix more quickly than than a pure
+      <d-code language='python'>python</d-code> implementation would.
     </p>
-
-    <iframe
-      src="https://wandb.ai/garrett361/balanced_title_recurrent_one_hot/reports/Sample-Title-Predictions--VmlldzoxMzQ3MjMy"
-      style="border:none;height:1024px;width:100%"></iframe>
-
-
-    <h3>
-      Training Workflow
-    </h3>
 
     <p>
-      The general training workflow I used for training all of the deep-learning models detailed in these posts is
-      relatively straightforward:
+      The <d-code language='python'>pytorch_lightning</d-code> GloVe code <a target='_blank' rel='noopener noreferrer'
+        href='https://github.com/garrett361/arxiv-vixra-ml/blob/main/arxiv_vixra_models/glove.py'>(
+        <d-code language='python'>LitGlove</d-code> here)
+      </a> reads in the generated sparse co-occurrence tensor<d-footnote id='sparse_is_slow'>
+        Reading from a sparse tensor is about an order-of-magnitude slower than reading from a non-sparse-one and for
+        this reason
+        <d-code language='python'>LitGlove</d-code> converts it back to a dense tensor internally.
+        An advantage of passing the sparse tensor and then converting comes from the fact that the sparse tensor keeps
+        track of where all of its non-trivial entries lie. Since only these entries need be included in the loss sum
+        above, it is hugely helpful to have them explicitly listed. I discovered the slowness of reading from a sparse
+        tensor by calling the <d-code language='python'>%prun</d-code> <a target='_blank' rel='noopener noreferrer'
+          href='https://ipython.readthedocs.io/en/stable/interactive/magics.html'>Jupyter magic code profiler method</a>
+        which is incredibly helpful in breaking down the efficiency bottlenecks in code.
+      </d-footnote> and goes
+      about minimizing the above loss, with various bell-and-whistle options (like learning
+      rate schedulers) and helper methods included.
+      </a>
     </p>
 
-    <ol>
-      <li>
-        In order to organize the deep-learning model code and minimize the amount of explicit code in my Colab
-        <<<<<<< HEAD notebooks, I put all <d-code language='python'>pl</d-code> models, data modules, etc into a package
-          I called
-          <d-code language='python'>arxiv_vixra_models</d-code> <a target='_blank' rel='noopener noreferrer'
-            href='https://github.com/garrett361/arxiv-vixra-ml/tree/main/arxiv_vixra_models'>(which can be found
-            here)</a>,
-          and which is easily imported into Colab notebooks from Drive.
-          =======
-          notebooks, I put all <d-code language='python'>pl</d-code> models, data modules, helper functions, etc., into
-          a
-          package,
-          <d-code language='python'>arxiv_vixra_models</d-code> <a target='_blank' rel='noopener noreferrer'
-            href='https://github.com/garrett361/arxiv-vixra-ml/tree/main/arxiv_vixra_models'>(which can be found
-            here)</a>, which is easily imported into Colab notebooks from Drive.
-          >>>>>>> f9399d321e76cc24fa271e6b5a3df4d0c6aa07d2
-      </li>
-      <li>
-        After importing a model from <d-code language='python'>arxiv_vixra_models</d-code> and setting the
-        hyperparameters which determine
-        <<<<<<< HEAD the model's capacity, I would then perform a trial-run on a subset of the training data to estimate
-          the=======the model's capacity, I then performed a trial-run on a subset of the training data to estimate the>
-          >>>>>> f9399d321e76cc24fa271e6b5a3df4d0c6aa07d2
-          optimal initial learning rate (lr), à la the well-known <a target='_blank' rel='noopener noreferrer'
-            href='https://arxiv.org/abs/1506.01186'>paper by Leslie Smith.</a> In this method, a small initial lr is
-          increased by a constant factor for each new batch of data until some maximum lr is surpassed or
-          the loss diverges (this process is implemented by <d-code language='python'>pl</d-code>'s <a target='_blank'
-            rel='noopener noreferrer'
-            href='https://pytorch-lightning.readthedocs.io/en/latest/api/pytorch_lightning.tuner.tuning.Tuner.html#pytorch_lightning.tuner.tuning.Tuner.lr_find'>lr_find</a>
-          method). The location of steepest descent<d-footnote id='descent'>
-            This steepest-descent prescription is not precisely what was advocated for in <a target='_blank'
-              rel='noopener noreferrer' href='https://arxiv.org/abs/1506.01186'>1506.01186</a> (nor was it the primary
-            focus of the paper) and the rule seems often to be stated without explanation. The essential logic is
-            that the
-            logarithmic learning-rate axis is a proxy for time-step, since the learning rate is being increased by some
-            constant factor for each new batch. Explicitly, the lr at the <d-math>n</d-math>-th batch, <d-math>\ell_{n}
-              <<<<<<< HEAD </d-math> is related to initial rate <d-math>\ell_{0}</d-math> by <d-math>\ell_{n}=\alpha^n
-                  \ell_{0}
-                  =======
-                </d-math>, is related to initial rate, <d-math>\ell_{0}</d-math>, by <d-math>\ell_{n}=\alpha^n \ell_{0}
-                  >>>>>>> f9399d321e76cc24fa271e6b5a3df4d0c6aa07d2
-                </d-math> for some <d-math>\alpha > 1</d-math>, meaning that <d-math>\ln \ell_{n}</d-math> grows
-                linearly
-                with <d-math>n</d-math> (the time-step), as claimed. The point of steepest-descent therefore corresponds
-                to
-                the configuration for which the loss was most-rapidly decreasing in time, which is precisely the desired
-                property for an initial lr. (The model weights are being updated in the usual way at each step, so
-                comparing
-                different
-                points on the
-                log(lr) axis is not exactly an apples-to-apples comparison since they correspond to different points in
-                the
-                <<<<<<< HEAD loss-landscape, but I am not aware of any analysis regarding this
-                  concern.)=======loss-landscape, but I am not aware of any analysis regarding this point.)>>>>>>>
-                  f9399d321e76cc24fa271e6b5a3df4d0c6aa07d2
-          </d-footnote> on the resulting loss-vs-log(lr) plot provides the suggested initial lr; see the figure below.
-      </li>
-      <li>
-        Set up a <d-code language='python'>wandb</d-code> hyperparameter sweep<d-footnote id='break'>
-          Updates to <d-code language='python'>pl</d-code> have
-          <a target='_blank' rel='noopener noreferrer'
-            href='https://github.com/PyTorchLightning/pytorch-lightning/issues/10336'>broken
-            <d-code language='python'>wandb</d-code> sweeps recently
-          </a>, but the <d-code language='python'>pl</d-code> team is very responsive
-          about addressing the issue, thankfully.
-        </d-footnote> exploring a neighborhood of the suggested
-        <<<<<<< HEAD initial lr and possibly other parameters which do not significantly change the size of the model
-          (e.g. don't=======initial lr and possibly other parameters <d-footnote id='random-search'>
-          The sweep parameters for each run are chosen randomly. <a target='_blank' rel='noopener noreferrer'
-            href='https://jmlr.csail.mit.edu/papers/volume13/bergstra12a/bergstra12a.pdf'>This
-            is a superior strategy to a grid-search</a>, essentially because a random-search avoids making unnecessary
-          assumptions about the structure of hyperparameter space and freeing oneself from a rigidly structured scan
-          expands the effective search volume.
-          </d-footnote> which do not significantly change the size of the model (e.g. don't
-          >>>>>>> f9399d321e76cc24fa271e6b5a3df4d0c6aa07d2
-          scan over possible choices of hidden dimensions). The latter condition ensures that we can use a constant,
-          large-as-possible batch size without running into <d-code language='python'>CUDA error: out of memory</d-code>
-          issues due to changes in model size.
-      </li>
-      <li>
-        Increase the capacity of the model until it can learn the training set, while trying not to add any
-        complications, per <a target="_blank" rel="noopener noreferrer" href="https://arxiv.org">Karpathy's advice
-        </a>.
-      </li>
-      <li>
-        Finally, add regularization to improve validation-set performance, toy around with various learning-rate
-        schedulers, and save the best models to <d-code language='python'>wandb</d-code>.
-      </li>
-    </ol>
+    <h4>Training</h4>
 
-    <d-figure style="grid-column-end: page-end">
-      <img src='images/lr_find.svg' alt='lr finder'>
+
+    <p>
+      Though the majority of the posts in this series focus on title data drawn from a balanced 1:1 arXiv:viXra
+      dataset, I trained the GloVe model on the abstracts from the larger 50:1 arXiv:viXra imbalanced dataset. The text
+      was
+      still
+      encoded using the limited vocabulary gleaned from titles, discussed <a target='_blank' rel='noopener noreferrer'
+        href='https://garrettgoon.com/arxiv-vixra-simple-recurrent/'>here</a>. The idea is that the advantage
+      gained from training on the much larger dataset (which has 270,417,636 tokens) will be greater than the
+      disadvantage that comes from eventually applying the trained embedding to qualitatively different type of text.
+    </p>
+
+    <h4>Visualizations</h4>
+
+
+    <p>
+      Word embeddings are <em>great</em> for visualization. I discuss a few such visualization below using heatmaps,
+      dimensional reduction techniques, and analogy computations.
+    </p>
+
+    <p>
+      The most basic and universally-used measure for how closely
+      related two words are is their cosine-similarity: the normalized dot-product between their associated vectors,
+      <d-math>\cos\theta_{ij}= w_i\cdot w_j / |w_i||w_j|</d-math>, which measures their alignment. Below is a heatmap of
+      the cosines between various
+      words for one fully trained GloVe model. The entire series of heatmaps which were generated throughout the
+      training process <a target='_blank' rel='noopener noreferrer'
+        href='https://wandb.ai/garrett361/arxiv_vixra_examples/reports/GloVe-Cosine-Heatmap--VmlldzoxNTIxNTYy'>can
+        alternatively be viewed here</a>. Some observations:
+    </p>
+
+    <ul>
+      <li>
+        The most tightly coupled tokens are <d-code language='python'>LaTeX</d-code> equation-setting markers $, ^, and
+        \, which necessarily appear near each other in valid <d-code language='python'>LaTeX</d-code>.
+      </li>
+    </ul>
+
+    <figure style='grid-column-end: page-end' id='heatmap'>
+      <img src='images/heatmap.png' alt=''>
       <figcaption>
-        An example of Smith's method for estimating the ideal initial learning rate, as implemented by <d-code
-          language='python'>pytorch lightning</d-code>. The red dot is the suggested lr.
+
       </figcaption>
-      </figure>
+    </figure>
+
+    <p>
+      <a target='_blank' rel='noopener noreferrer'
+        href='https://wandb.ai/garrett361/arxiv_vixra_examples/reports/GloVe-t-SNE--VmlldzoxNTIyMTk0'>t-SNE</a>
+    </p>
+
+    <p>
+      <a target='_blank' rel='noopener noreferrer'
+        href='https://wandb.ai/garrett361/arxiv_vixra_examples/reports/GloVe-PCA--VmlldzoxNTIyMjAx'>PCA</a>
+    </p>
+
+
+
 
 
   </d-article>
@@ -369,7 +483,7 @@ as with /static as their root. E.g. <img src="/diagrams/fig1.png">
         <a target="_blank" rel="noopener noreferrer" href="https://garrettgoon.com/arxiv-vixra-data/">The Data</a>
       </li>
       <li>
-        <a target='_blank' rel='noopener noreferrer' href='https://garrettgoon.com/arxiv-vixra-workflow/'>Workflow</a>
+        <a target='_blank' rel='noopener noreferrer' href='https://garrettgoon.com/arxiv-vixra-workflow/'>Embeddings</a>
       </li>
       <li>
         <a target="_blank" rel="noopener noreferrer"
